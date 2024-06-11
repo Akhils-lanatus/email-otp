@@ -94,7 +94,11 @@ const SendOtpToUserForLogin = async (req, res) => {
     }
     // const link = `http://localhost:3000/api/v1/user/enter-otp`;
 
-    const otp = await Otp.create({ email, otp: OTP });
+    const otp = await Otp.updateOne(
+      { email },
+      { $set: { otp: OTP } },
+      { upsert: true }
+    );
 
     if (!otp) {
       return res.status(400).json({
@@ -155,7 +159,7 @@ const SendOtpToUserForLogin = async (req, res) => {
             <p>Dear User,</p>
             <p>Thank you for using our service. Please use the following One-Time Password (OTP) to complete your verification process:</p>
             <div class="otp">${OTP}</div>
-            <p>This OTP is valid for 1 minutes. Do not share this OTP with anyone.</p>
+            <p>This OTP is valid for 10 minutes. Do not share this OTP with anyone.</p>
             <p>Best regards,</p>
             <p>Your Company</p>
         </div>

@@ -10,7 +10,7 @@ const OtpSchema = new Schema(
     },
     createdAt: {
       type: Date,
-      expires: "30s",
+      expires: "8m",
       default: Date.now,
     },
   },
