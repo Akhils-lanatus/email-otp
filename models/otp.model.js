@@ -1,4 +1,5 @@
 import mongoose, { Schema } from "mongoose";
+
 const OtpSchema = new Schema(
   {
     email: {
@@ -7,13 +8,15 @@ const OtpSchema = new Schema(
     },
     otp: {
       type: String,
+      required: true,
     },
     createdAt: {
       type: Date,
-      expires: "8m",
       default: Date.now,
+      expires: 480,
     },
   },
   { timestamps: true }
 );
+
 export const Otp = mongoose.model("Otp", OtpSchema);

@@ -96,7 +96,7 @@ const SendOtpToUserForLogin = async (req, res) => {
 
     const otp = await Otp.updateOne(
       { email },
-      { $set: { otp: OTP } },
+      { $set: { otp: OTP, createdAt: new Date() } },
       { upsert: true }
     );
 
@@ -159,7 +159,7 @@ const SendOtpToUserForLogin = async (req, res) => {
             <p>Dear User,</p>
             <p>Thank you for using our service. Please use the following One-Time Password (OTP) to complete your verification process:</p>
             <div class="otp">${OTP}</div>
-            <p>This OTP is valid for 10 minutes. Do not share this OTP with anyone.</p>
+            <p>This OTP is valid for 1 minutes. Do not share this OTP with anyone.</p>
             <p>Best regards,</p>
             <p>Your Company</p>
         </div>
@@ -180,7 +180,10 @@ const SendOtpToUserForLogin = async (req, res) => {
       },
       (error, info) => {
         if (error) {
-          return console.log(error);
+          return res.status(400).json({
+            success: false,
+            message: "Error in generating otp",
+          });
         }
       }
     );
@@ -192,16 +195,38 @@ const SendOtpToUserForLogin = async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message:
-        error.code === 11000
-          ? "Please wait for 2 minutes to send another otp"
-          : "Error in logging",
+      message: "Error in logging",
     });
   }
 };
 
 const verifyUserOTP = async (req, res) => {
   try {
+    const { email, otp } = req.body;
+    if (!email || !otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing Data",
+      });
+    }
+    const data = await Otp.findOne({ email });
+    if (!data) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid Email or Otp Expired",
+      });
+    }
+    if (data.otp !== otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid OTP",
+      });
+    }
+    await Otp.deleteOne({ email }); //required or not?
+    return res.status(200).json({
+      success: true,
+      message: "Login Successful",
+    });
   } catch (error) {
     return res.status(500).json({
       success: false,
@@ -209,4 +234,4 @@ const verifyUserOTP = async (req, res) => {
     });
   }
 };
-export { UserRegister, SendOtpToUserForLogin };
+export { UserRegister, SendOtpToUserForLogin, verifyUserOTP };
